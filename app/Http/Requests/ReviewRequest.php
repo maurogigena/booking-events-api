@@ -14,17 +14,33 @@ class ReviewRequest extends FormRequest
 
     public function rules(): array
     {
-        $rules = [
-            // store() rules === put() rules
+        return match ($this->method()) {
+            'POST' => $this->storeRules(),
+            'PUT' => $this->replaceRules(),
+            'PATCH' => $this->updateRules(),
+            default => [],
+        };
+    }
+
+    public function storeRules(): array
+    {
+        return [
             'rating' => 'required|integer|min:1|max:5',
             'comment' => 'nullable|string',
         ];
-    
-        if ($this->method() === 'PATCH') {
-            $rules['rating'] = 'sometimes|integer|min:1|max:5';
-        }
+    }
 
-        return $rules;
+    public function updateRules(): array
+    {
+        return [
+            'rating' => 'sometimes|integer|min:1|max:5',
+            'comment' => 'sometimes|nullable|string',
+        ];
+    }
+
+    public function replaceRules(): array
+    {
+        return $this->storeRules();
     }
 
     public function createReview($eventId)

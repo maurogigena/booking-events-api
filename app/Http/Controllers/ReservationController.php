@@ -12,9 +12,8 @@ class ReservationController extends Controller
 {
     use ApiResponses;
 
-    public function reserve(ReservationRequest $request, $id)
+    public function reserve(ReservationRequest $request, Event $event)
     {
-        $event = Event::with(['attendees'])->withCount('attendees')->findOrFail($id);
         $user = $request->user();
 
         // Create the reservation
@@ -22,19 +21,18 @@ class ReservationController extends Controller
             'created_at' => now()
         ]);
         
-        // Get the reservation
+        // Get the reservation with needed relationships
         $reservation = $event->attendees()
             ->where('user_id', $user->id)
+            ->with(['user', 'event'])
             ->first()
             ->pivot;
 
         return $this->success('Reservation created successfully', new ReservationResource($reservation));
     }
 
-    public function cancel(Request $request, $id)
+    public function cancel(Request $request, Event $event)
     {
-        // Verify if the event exists
-        $event = Event::with(['attendees'])->findOrFail($id);
         $user = $request->user();
 
         // Verify if the user has a reservation for this event

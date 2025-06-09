@@ -23,7 +23,7 @@ class EventResource extends JsonResource
             'price' => '$' . $this->price . ' USD',
             'attendee_limit' => $this->attendee_limit,
             'reservation_deadline' => $this->reservation_deadline,
-            'attendees_count' => $this->attendees_count ?? $this->attendees->count(),
+            'attendees_count' => $this->attendees_count ?? $this->attendees?->count() ?? 0,
             'reviews' => ReviewResource::collection($this->whenLoaded('reviews')),
         ];
     }

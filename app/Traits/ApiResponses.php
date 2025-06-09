@@ -7,11 +7,6 @@ use Illuminate\Http\JsonResponse;
 trait ApiResponses 
 {
     // General function to return customized success responses
-    protected function ok($message, $data = []): JsonResponse 
-    {
-        return $this->success($message, $data, 200);
-    }
-    
     protected function success($message, $data = [], $statusCode = 200): JsonResponse 
     {
         return response()->json([

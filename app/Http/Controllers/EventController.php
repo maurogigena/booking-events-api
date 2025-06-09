@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Http\Requests\EventRequest;
-use App\Services\Filters\EventFilter;
 use App\Http\Resources\EventListResource;
 use App\Http\Resources\EventResource;
 use App\Traits\ApiResponses;
@@ -14,21 +13,24 @@ class EventController extends Controller
 {
     use AuthorizesRequests, ApiResponses;
 
-    public function index(EventRequest $request)
+    public function index()
     {
-        $events = EventFilter::apply(Event::query(), $request)
-                    ->with(['creator'])
-                    ->paginate(request()->query('per_page', 15));
+        $events = Event::query()
+            ->filter(request()->input('filter', []))
+            ->sort(request()->query('sort'))
+            ->paginate(request()->query('per_page', 15));
                     
         return EventListResource::collection($events);
     }
 
-    public function show($id)
+    public function show(Event $event)
     {
-        $event = Event::with(['creator', 'attendees', 'reviews.user'])
-            ->findOrFail($id);
-        
-        return new EventResource($event);
+        return new EventResource(
+            $event->loadCount('attendees')
+                  ->load(['reviews' => function($query) {
+                      $query->latest();
+                  }])
+        );
     }
 
     public function store(EventRequest $request)
@@ -41,30 +43,27 @@ class EventController extends Controller
         return $this->success('Event created successfully', $event, 201);
     }
 
-    public function update(EventRequest $request, $id)
+    public function update(EventRequest $request, Event $event)
     {
-        $event = Event::findOrFail($id);
         $this->authorize('update', $event);
         
         $event->update($request->validated());
-        return $this->ok('Event updated successfully', $event);
+        return $this->success('Event updated successfully', $event);
     }
 
-    public function replace(EventRequest $request, $id)
+    public function replace(EventRequest $request, Event $event)
     {
-        $event = Event::findOrFail($id);
         $this->authorize('update', $event);
 
         $event->update($request->validated());
-        return $this->ok('Event replaced successfully', $event);
+        return $this->success('Event replaced successfully', $event);
     }
 
-    public function destroy($id)
+    public function destroy(Event $event)
     {
-        $event = Event::findOrFail($id);
         $this->authorize('delete', $event);
 
         $event->delete();
-        return $this->ok("Event {$event->id} deleted successfully");
+        return $this->success("Event {$event->id} deleted successfully");
     }
 }

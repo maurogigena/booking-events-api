@@ -49,6 +49,6 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
-        return $this->ok('Logged out successfully. Come back soon!');
+        return $this->success('Logged out successfully. Come back soon!');
     }
 }
