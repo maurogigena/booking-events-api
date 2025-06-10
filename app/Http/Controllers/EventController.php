@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Http\Requests\EventRequest;
-use App\Http\Resources\EventListResource;
 use App\Http\Resources\EventResource;
 use App\Traits\ApiResponses;
 
@@ -18,18 +17,20 @@ class EventController extends Controller
         $events = Event::query()
             ->filter(request()->input('filter', []))
             ->sort(request()->query('sort'))
-            ->paginate(request()->query('per_page', 15));
+                    ->paginate(request()->query('per_page', 15));
                     
-        return EventListResource::collection($events);
+        return EventResource::collection($events);
     }
 
     public function show(Event $event)
     {
+        if ($event->reservation_deadline <= now() || ($event->attendees_count ?? 0) >= $event->attendee_limit) {
+            return $this->error('This event is no longer available', 403);
+        }
+
         return new EventResource(
             $event->loadCount('attendees')
-                  ->load(['reviews' => function($query) {
-                      $query->latest();
-                  }])
+                ->load(['reviews' => fn($query) => $query->latest()])
         );
     }
 
@@ -40,7 +41,7 @@ class EventController extends Controller
             ...$request->validated()
         ]);
         
-        return $this->success('Event created successfully', $event, 201);
+        return $this->success('Event created successfully', new EventResource($event), 201);
     }
 
     public function update(EventRequest $request, Event $event)
@@ -48,7 +49,7 @@ class EventController extends Controller
         $this->authorize('update', $event);
         
         $event->update($request->validated());
-        return $this->success('Event updated successfully', $event);
+        return $this->success('Event updated successfully', new EventResource($event));
     }
 
     public function replace(EventRequest $request, Event $event)
@@ -56,7 +57,7 @@ class EventController extends Controller
         $this->authorize('update', $event);
 
         $event->update($request->validated());
-        return $this->success('Event replaced successfully', $event);
+        return $this->success('Event replaced successfully', new EventResource($event));
     }
 
     public function destroy(Event $event)

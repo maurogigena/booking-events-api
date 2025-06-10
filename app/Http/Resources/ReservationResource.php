@@ -14,12 +14,10 @@ class ReservationResource extends JsonResource
      */
     public function toArray($request)
     {
-        $timestamp = $this->pivot ? $this->pivot->created_at : $this->created_at;
-
         return [
-            'event_name' => $this->event?->title,
-            'user_name' => $this->user?->name,
-            'reserved_at' => $timestamp?->format('Y-m-d H:i:s'),
+            'event_name' => $this->event->title,
+            'user_name' => $this->user->name,
+            'reserved_at' => $this->created_at->format('Y-m-d H:i:s'),
             'message' => 'Reservation successful',
             'status' => 'confirmed'
         ];

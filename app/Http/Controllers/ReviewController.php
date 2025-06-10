@@ -16,8 +16,7 @@ class ReviewController extends Controller
 
     public function index(Event $event)
     {
-        $reviews = Review::query()
-            ->where('event_id', $event->id)
+        $reviews = $event->reviews()
             ->with(['user', 'event'])
             ->filter(request()->input('filter', []))
             ->sort(request()->query('sort'))

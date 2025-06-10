@@ -20,15 +20,18 @@ class ReservationController extends Controller
         $event->attendees()->attach($user->id, [
             'created_at' => now()
         ]);
-        
-        // Get the reservation with needed relationships
-        $reservation = $event->attendees()
-            ->where('user_id', $user->id)
-            ->with(['user', 'event'])
-            ->first()
-            ->pivot;
 
-        return $this->success('Reservation created successfully', new ReservationResource($reservation));
+        // Prepare data for the resource
+        $reservationData = [
+            'event' => $event,
+            'user' => $user,
+            'created_at' => now()
+        ];
+
+        return $this->success(
+            'Reservation created successfully', 
+            new ReservationResource((object)$reservationData)
+        );
     }
 
     public function cancel(Request $request, Event $event)

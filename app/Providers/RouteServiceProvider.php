@@ -7,6 +7,7 @@ use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvi
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
+use App\Models\Event;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -24,9 +25,12 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Rate limiting for login requests
-        RateLimiter::for('login', function (Request $request) {
-            return Limit::perMinute(5)->by($request->ip());
+        Route::bind('event', function ($value) {
+            return Event::withoutGlobalScope('available')->find($value) ?? abort(404);
+        });
+
+        RateLimiter::for('api', function (Request $request) {
+            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
 
         $this->routes(function () {

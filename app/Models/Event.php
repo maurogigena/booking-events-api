@@ -33,9 +33,25 @@ class Event extends Model
     protected static function booted()
     {
         static::addGlobalScope('available', function (Builder $builder) {
-            $builder->where('reservation_deadline', '>', now())
-                   ->withCount('attendees')
-                   ->havingRaw('attendees_count < attendee_limit');
+            // Always add the attendees count as it's needed for both cases
+            $builder->withCount('attendees');
+
+            // If we have an authenticated user, check if they're the owner
+            if ($user = request()->user()) {
+                $builder->where(function ($query) use ($user) {
+                    // show all events if the user is the owner
+                    $query->where('user_id', $user->id)
+                        // show avaliable events of other users
+                          ->orWhere(function ($query) {
+                              $query->where('reservation_deadline', '>', now())
+                                   ->havingRaw('attendees_count < attendee_limit');
+                          });
+                });
+            } else {
+                // For non-authenticated users, show only available events
+                $builder->where('reservation_deadline', '>', now())
+                       ->havingRaw('attendees_count < attendee_limit');
+            }
         });
     }
 

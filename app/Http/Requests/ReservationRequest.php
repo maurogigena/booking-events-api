@@ -28,19 +28,14 @@ class ReservationRequest extends FormRequest
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
-            $event = Event::withCount('attendees')->find($this->route('id'));
-            
-            if (!$event) {
-                $validator->errors()->add('event', 'The event does not exist.');
-                return;
-            }
+            $event = $this->route('event');
             
             if ($event->user_id === $this->user()->id) {
                 $validator->errors()->add('event', 'You cannot make a reservation for your own event.');
                 return;
             }
             
-            if ($event->attendees_count >= $event->attendee_limit) {
+            if (($event->attendees_count ?? 0) >= $event->attendee_limit) {
                 $validator->errors()->add('event', 'No available seats for this event.');
             }
 

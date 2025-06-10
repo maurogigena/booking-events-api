@@ -36,7 +36,7 @@ class ReviewRequest extends FormRequest
             'rating' => 'sometimes|integer|min:1|max:5',
             'comment' => 'sometimes|nullable|string',
         ];
-    }
+        }
 
     public function replaceRules(): array
     {
