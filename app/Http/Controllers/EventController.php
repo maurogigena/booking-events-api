@@ -25,7 +25,7 @@ class EventController extends Controller
     public function show(Event $event)
     {
         if ($event->reservation_deadline <= now() || ($event->attendees_count ?? 0) >= $event->attendee_limit) {
-            return $this->error('This event is no longer available', 403);
+            return $this->error(403);
         }
 
         return new EventResource(
@@ -41,7 +41,7 @@ class EventController extends Controller
             ...$request->validated()
         ]);
         
-        return $this->success('Event created successfully', new EventResource($event), 201);
+        return $this->success(new EventResource($event));
     }
 
     public function update(EventRequest $request, Event $event)
@@ -49,7 +49,7 @@ class EventController extends Controller
         $this->authorize('update', $event);
         
         $event->update($request->validated());
-        return $this->success('Event updated successfully', new EventResource($event));
+        return $this->success(new EventResource($event));
     }
 
     public function replace(EventRequest $request, Event $event)
@@ -57,7 +57,7 @@ class EventController extends Controller
         $this->authorize('update', $event);
 
         $event->update($request->validated());
-        return $this->success('Event replaced successfully', new EventResource($event));
+        return $this->success(new EventResource($event));
     }
 
     public function destroy(Event $event)
@@ -65,6 +65,6 @@ class EventController extends Controller
         $this->authorize('delete', $event);
 
         $event->delete();
-        return $this->success("Event {$event->id} deleted successfully");
+        return $this->success(200);
     }
 }

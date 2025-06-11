@@ -28,10 +28,9 @@ class ReservationController extends Controller
             'created_at' => now()
         ];
 
-        return $this->success(
-            'Reservation created successfully', 
-            new ReservationResource((object)$reservationData)
-        );
+        return $this->success(new ReservationResource(
+            (object)$reservationData
+        ));
     }
 
     public function cancel(Request $request, Event $event)
@@ -40,12 +39,12 @@ class ReservationController extends Controller
 
         // Verify if the user has a reservation for this event
         if (!$event->attendees()->where('user_id', $user->id)->exists()) {
-            return $this->error('You do not have a reservation for this event.', 404);
+            return $this->error(404);
         }
 
         // Delete the reservation
         $event->attendees()->detach($user->id);
 
-        return $this->success('Reservation cancelled successfully');
+        return $this->success(200);
     }
 }

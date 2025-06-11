@@ -25,8 +25,9 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Let the global scope handle the availability logic
         Route::bind('event', function ($value) {
-            return Event::withoutGlobalScope('available')->find($value) ?? abort(404);
+            return Event::findOrFail($value);
         });
 
         RateLimiter::for('api', function (Request $request) {

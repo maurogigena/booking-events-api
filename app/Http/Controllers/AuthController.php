@@ -23,7 +23,7 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return $this->success('User registered successfully', [
+        return $this->success([
             'access_token' => $token,
             'token_type' => 'Bearer',
             'user' => $user,
@@ -39,7 +39,7 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
         
-        return $this->success("Welcome back {$user->name}!", [
+        return $this->success([
             'access_token' => $token,
             'token_type' => 'Bearer',
             'user' => $user,
@@ -49,6 +49,6 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
-        return $this->success('Logged out successfully. Come back soon!');
+        return $this->success(200);
     }
 }

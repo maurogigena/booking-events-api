@@ -30,12 +30,12 @@ class ReviewController extends Controller
         $user = $request->user();
 
         if (!$event->attendees()->where('user_id', $user->id)->exists()) {
-            return $this->error('Only users who have reserved can leave a review', 403);
+            return $this->error(403);
         }
 
         $review = $request->createReview($event->id);
 
-        return $this->success('Review created successfully', new ReviewResource($review), 201);
+        return $this->success(new ReviewResource($review));
     }
 
     public function update(ReviewRequest $request, Review $review)
@@ -45,7 +45,7 @@ class ReviewController extends Controller
         $validated = $request->validate($request->rules());
         $review->update($validated);
 
-        return $this->success('Review updated successfully', $review);
+        return $this->success(new ReviewResource($review));
     }
 
     public function replace(ReviewRequest $request, Review $review)
@@ -55,7 +55,7 @@ class ReviewController extends Controller
         $validated = $request->validate($request->rules());
         $review->update($validated);
 
-        return $this->success('Review replaced successfully', $review);
+        return $this->success(new ReviewResource($review));
     }
 
     public function destroy(Review $review)
@@ -63,6 +63,6 @@ class ReviewController extends Controller
         $this->authorize('delete', $review);
 
         $review->delete();
-        return $this->success('Review deleted successfully');
+        return $this->success(200);
     }
 }

@@ -35,7 +35,7 @@ class ReservationRequest extends FormRequest
                 return;
             }
             
-            if (($event->attendees_count ?? 0) >= $event->attendee_limit) {
+            if ($event->attendees()->count() >= $event->attendee_limit) {
                 $validator->errors()->add('event', 'No available seats for this event.');
             }
 
