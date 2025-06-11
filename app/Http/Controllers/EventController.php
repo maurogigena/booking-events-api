@@ -6,11 +6,11 @@ use App\Models\Event;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Http\Requests\EventRequest;
 use App\Http\Resources\EventResource;
-use App\Traits\ApiResponses;
+use Illuminate\Http\JsonResponse;
 
 class EventController extends Controller
 {
-    use AuthorizesRequests, ApiResponses;
+    use AuthorizesRequests;
 
     public function index()
     {
@@ -24,8 +24,11 @@ class EventController extends Controller
 
     public function show(Event $event)
     {
-        if ($event->reservation_deadline <= now() || ($event->attendees_count ?? 0) >= $event->attendee_limit) {
-            return $this->error(403);
+        $isDeadlinePassed = $event->reservation_deadline <= now();
+        $isEventFull = $event->attendees()->count() >= $event->attendee_limit;
+        
+        if ($isDeadlinePassed || $isEventFull) {
+            abort(403);
         }
 
         return new EventResource(
@@ -41,7 +44,7 @@ class EventController extends Controller
             ...$request->validated()
         ]);
         
-        return $this->success(new EventResource($event));
+        return response()->json(['data' => new EventResource($event)], 201);
     }
 
     public function update(EventRequest $request, Event $event)
@@ -49,7 +52,7 @@ class EventController extends Controller
         $this->authorize('update', $event);
         
         $event->update($request->validated());
-        return $this->success(new EventResource($event));
+        return response()->json(['data' => new EventResource($event)]);
     }
 
     public function replace(EventRequest $request, Event $event)
@@ -57,7 +60,7 @@ class EventController extends Controller
         $this->authorize('update', $event);
 
         $event->update($request->validated());
-        return $this->success(new EventResource($event));
+        return response()->json(['data' => new EventResource($event)]);
     }
 
     public function destroy(Event $event)
@@ -65,6 +68,6 @@ class EventController extends Controller
         $this->authorize('delete', $event);
 
         $event->delete();
-        return $this->success(200);
+        return response()->json(200);
     }
 }

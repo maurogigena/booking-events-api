@@ -6,12 +6,10 @@ use App\Models\Event;
 use Illuminate\Http\Request;
 use App\Http\Requests\ReservationRequest;
 use App\Http\Resources\ReservationResource;
-use App\Traits\ApiResponses;
+use Illuminate\Http\JsonResponse;
 
 class ReservationController extends Controller
 {
-    use ApiResponses;
-
     public function reserve(ReservationRequest $request, Event $event)
     {
         $user = $request->user();
@@ -28,9 +26,9 @@ class ReservationController extends Controller
             'created_at' => now()
         ];
 
-        return $this->success(new ReservationResource(
-            (object)$reservationData
-        ));
+        return response()->json([
+            'data' => new ReservationResource((object)$reservationData)
+        ], 201);
     }
 
     public function cancel(Request $request, Event $event)
@@ -39,12 +37,12 @@ class ReservationController extends Controller
 
         // Verify if the user has a reservation for this event
         if (!$event->attendees()->where('user_id', $user->id)->exists()) {
-            return $this->error(404);
+            abort(404, 'Reservation not found');
         }
 
         // Delete the reservation
         $event->attendees()->detach($user->id);
 
-        return $this->success(200);
+        return response()->json(200);
     }
 }

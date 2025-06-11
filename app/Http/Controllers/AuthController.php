@@ -7,12 +7,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
-use App\Traits\ApiResponses;
+use Illuminate\Http\JsonResponse;
 
 class AuthController extends Controller
 {
-    use ApiResponses;
-
     public function register(RegisterRequest $request)
     {
         $user = User::create([
@@ -23,10 +21,12 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return $this->success([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'user' => $user,
+        return response()->json([
+            'data' => [
+                'access_token' => $token,
+                'token_type' => 'Bearer',
+                'user' => $user,
+            ]
         ], 201);
     }
 
@@ -34,21 +34,24 @@ class AuthController extends Controller
     {
         $user = User::where('email', $request->email)->first();
         if (!$user || !Hash::check($request->password, $user->password)) {
-            return $this->error('Invalid credentials', 401);
+            abort(401, 'Invalid credentials');
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
         
-        return $this->success([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'user' => $user,
+        return response()->json([
+            'data' => [
+                'access_token' => $token,
+                'token_type' => 'Bearer',
+                'user' => $user,
+            ]
         ]);
     }
 
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
-        return $this->success(200);
+        return response()->json(200);
     }
 }
+ 

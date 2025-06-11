@@ -8,11 +8,11 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Http\Requests\ReviewRequest;
 use App\Services\Filters\ReviewFilter;
 use App\Http\Resources\ReviewResource;
-use App\Traits\ApiResponses;
+use Illuminate\Http\JsonResponse;
 
 class ReviewController extends Controller
 {
-    use AuthorizesRequests, ApiResponses;
+    use AuthorizesRequests;
 
     public function index(Event $event)
     {
@@ -30,12 +30,14 @@ class ReviewController extends Controller
         $user = $request->user();
 
         if (!$event->attendees()->where('user_id', $user->id)->exists()) {
-            return $this->error(403);
+            abort(403);
         }
 
         $review = $request->createReview($event->id);
 
-        return $this->success(new ReviewResource($review));
+        return response()->json([
+            'data' => new ReviewResource($review)
+        ], 201);
     }
 
     public function update(ReviewRequest $request, Review $review)
@@ -45,7 +47,9 @@ class ReviewController extends Controller
         $validated = $request->validate($request->rules());
         $review->update($validated);
 
-        return $this->success(new ReviewResource($review));
+        return response()->json([
+            'data' => new ReviewResource($review)
+        ]);
     }
 
     public function replace(ReviewRequest $request, Review $review)
@@ -55,7 +59,9 @@ class ReviewController extends Controller
         $validated = $request->validate($request->rules());
         $review->update($validated);
 
-        return $this->success(new ReviewResource($review));
+        return response()->json([
+            'data' => new ReviewResource($review)
+        ]);
     }
 
     public function destroy(Review $review)
@@ -63,6 +69,6 @@ class ReviewController extends Controller
         $this->authorize('delete', $review);
 
         $review->delete();
-        return $this->success(200);
+        return response()->json(200);
     }
 }
